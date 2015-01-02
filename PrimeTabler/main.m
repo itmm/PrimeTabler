@@ -18,6 +18,8 @@ static const CGFloat kFontSize = 40;
 static CTFontRef font = NULL;
 
 static void drawEntryAtIndex(CGContextRef ctx, Entry *entry, NSInteger index) {
+    if (!entry.value) return;
+    
     NSString *value = [NSString stringWithFormat: @"%d", (int) entry.value];
     NSAttributedString *attributedValue = [[NSAttributedString alloc] initWithString: value
         attributes: @{
@@ -124,6 +126,8 @@ void classicalSieve() {
 
 void streamSieve() {
     NSMutableArray *entries = initial();
+    NSMutableArray *summary = [NSMutableArray new];
+    NSMutableArray *summaries = [NSMutableArray new];
     render(entries);
     
     NSInteger next = ((Entry *) entries.lastObject).value + 1;
@@ -141,6 +145,15 @@ void streamSieve() {
         }
         if (somethingChanged) {
             render(entries);
+            if (summary.count < kCount) {
+                for (NSInteger j = 0; j < kColumns; ++j) {
+                    Entry *old = entries[j];
+                    Entry *new = [Entry entryWithValue: old.value];
+                    new.color = old.color;
+                    [summary addObject: new];
+                }
+                [summaries addObject: [NSArray arrayWithArray: summary]];
+            }
             for (NSInteger j = pivotIndex + 1; j < entries.count; ) {
                 Entry *e = entries[j];
                 if (e.color == NSColor.darkGrayColor) {
@@ -162,6 +175,9 @@ void streamSieve() {
             }
             render(entries);
         }
+    }
+    for (NSArray *sum in summaries) {
+        render(sum);
     }
 }
 
